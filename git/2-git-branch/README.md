@@ -141,7 +141,7 @@ git은 머지할 때 자식 커밋들의 변경 내역에서 무엇이 더 중�
 머지 중에 충돌이 날 경우 git stauts를 입력하면 both modified 파일을 확인 할 수 있다.
 충돌이 난 곳을 확인후 내용을 수정한다. (>>>> HEAD와 같은 내용을 지운다.) 모두 스테이징에 추가한 후 머지 커밋(C6)를 만들 수 있다.
 
-## 4. 이쯤와서 정리하는 branch 명령어들
+### 4. 이쯤와서 정리하는 branch 명령어들
 
 `git branch` git 브랜치 리스트
 
@@ -155,12 +155,81 @@ git은 머지할 때 자식 커밋들의 변경 내역에서 무엇이 더 중�
 
 `git branch -d <name>` 로컬 브랜치 삭제 (머지하지 않았으면 -D로 지워야함)
 
+## 4. 리베이스란 무엇인가?
+git에서 브랜치를 합치는 명령어에는 merge와 rebase가 있다.
 
-## 5. 리베이스란 무엇인가?
-rebase 실제로 해보는 과제 만들기
+머지 커밋은 단순히 브랜치를 머지하면서 발생하는 커밋이므로, 작업내용의 논리 하나하나와 크게 상관이 없다. 이런 커밋들은 브랜치의 작업내용을 어지럽히고, 의미 없는 커밋들로 생각하는 사람들이 있다. rebase는 이런 머지커밋을 만들지 않게 도와준다. 머지 커밋을 만들지 않으려면 어떻게 해야할까? 모든 머지를 fast-forward로 할 수 있다면 머지 커밋을 만들지 않아도 되지 않을까?  그렇다면 fast-forward 머지를 진행하기 위해서는 어떻게 해야할까? 
 
-## 6. 대충 브랜치, 머지, 리베이스를 동적으로 확인 할 수 있는 사이트
+### 1. 리베이스는 브랜치의 부모 커밋을 변경한다.
+위의 답은 합치려는 브랜치의 관계를 fast-forward에 맞게 변경하면 된다. 
 
+즉 합치려는 브랜치를 자식 - 자식의 관계에서 부모- 자식으로 바꾸면 머지 커밋 없이 브랜치를 합칠 수 있다.
+
+rebase는 re + base라는 의미로 base 커밋(부모)을 변경한다는 것을 의미한다.. git rebase 명령어는 2가지 과정으로 진행된다.
+
+1. 브랜치의 커밋들을 파일(blob)이 아닌 변경(fetch)으로 데이터를 만든다.
+2.  합치려고 하는 브랜치에 1에서 만든 변경을 커밋별로 하나씩 적용하며 새로운 커밋 생성한다.
+
+### 2. 그림으로 이해하는 리베이스
+아래의 그림과 같은 커밋, 브랜치가 있다고 가정하자.
+![두 개의 브랜치로 나누어진 커밋 히스토리](https://git-scm.com/book/en/v2/images/basic-rebase-1.png)
+
+experiment와 master를 합치려면 3-way 로 해야만 한다.
+
+그러나 이번에는 이를 피하기 위해, 리베이스를 해보자.
+
+`git checkout experiment`
+
+`git rebase master`
+
+그러면 아래와 같이 c3 커밋을 c2가 아닌 c3로 부터 시작한것으로 커밋을 변경하게 된다.
+
+![`C4`의 변경사항을 `C3`에 적용하는 Rebase 과정.](https://git-scm.com/book/en/v2/images/basic-rebase-3.png)
+
+이 상태에서 master와 머지를 진행하자.
+
+`git checkout master`
+
+`git merge experiment`
+
+![master 브랜치를 Fast-forward시키기](https://git-scm.com/book/en/v2/images/basic-rebase-4.png)
+
+머지 커밋이 없는 깔끔한 마스터 브랜치를 만들 수 있다.
+
+### 3. 리베이스를 활용!
+![다른 토픽 브랜치에서 갈라져 나온 토픽 브랜치](https://git-scm.com/book/en/v2/images/interesting-rebase-1.png)
+
+위의 그림에서 master 브랜치에 client 브랜치를 적용하고자 한다. 즉 client 브랜치에서 c3의 작업 내용 중 하나라도 master에 넣지 않고 master에 적용하고 싶다. 이럴 경우 --onto 옵션을 이용하면 된다. (최근에 백앤드에서 dev브랜치에서 만든 인증서버 브랜치를 master로 바로 푸시하기 위해 --onto옵션을 사용했습니다.)
+
+`git rebase --onto master server client`
+
+(브랜치 순서가 중요하다. 최종 베이스 브랜치, 이전 베이스 브랜치, 리베이스 대상 브랜치)
+
+그 후 master와 client를 머지하면 아래의 그림과 같다.
+
+![다른 토픽 브랜치에서 갈라져 나온 토픽 브랜치를 Rebase 하기](https://git-scm.com/book/en/v2/images/interesting-rebase-2.png)
+
+### 4. 리베이스의 위험성
+push를 했다면 rebase하지 말라.
+
+리모트의 레포를 클론한 후, 마스터 브랜치에서 작업(C2, C3)을 진행하면 아래와 같다.
+
+![저장소를 Clone 하고 일부 수정함](https://git-scm.com/book/en/v2/images/perils-of-rebasing-1.png)
+
+작업을 하고 있는 도중에, 팀원 1이 리모트 마스터 브랜치를 업데이트 한다. (C4, C5, C6) 따라서 우리는 이를 git pull(fetch + merge)를 이용해서 가져온다. (C7 커밋을 만든다.)
+![Fetch 한 후 Merge 함](https://git-scm.com/book/en/v2/images/perils-of-rebasing-2.png)
+
+그런데 팀원1이 과거를 후회하며 리베이스를 통해 C4'를 만들고 이를 다시 리모트에 푸시한다. (이때 로컬과 리모트의 커밋내역이 다르므로 force 옵션을 줄 수 밖에 없다.) 깃헙에서 C4, C6는 지워진다. 
+
+![한 팀원이 다른 팀원이 의존하는 커밋을 없애고 Rebase 한 커밋을 다시 Push 함](https://git-scm.com/book/en/v2/images/perils-of-rebasing-3.png)
+
+이때 다시 우리가 git pull을 받게 되면 아래와 같이 끔찍한 상태가 된다. 또 머지를 하게된다! 리베이스를 하면 커밋이 아예 바뀌므로, 이를 다시 머지하는 커밋을 만들어야하기 때문이다. (C7는 과거 마스터와의 머지, C8은 최근 마스터와의 머지커밋)
+
+![같은 Merge를 다시 한다](https://git-scm.com/book/en/v2/images/perils-of-rebasing-4.png)
+
+이때 우리의 로컬에서 git log를 입력하면 c4와 c4'가 공존하는 혼란한 로그를 확인하게 된다.
+
+위의 문제는 git pull --rebase을 이용해 pull을 받으면 해결할 수있다. 그렇지만 pull 할때마다 rebase를 해야하는 부담이 있으니 위와 같은 상황을 사전에 만들지 않도록 하는 것이 좋다. 각자 로컬에서 리베이스를 해서 푸시하는 것이 제일 좋다. 또한 같이 사용하지 않고, 아직 같이 사용하는 브랜치에 머지하지 않았더라면 리베이스를 해서 push -f를 하더라도 위와 같은 문제는 없다.
 
 ### References
 1) https://git-scm.com/book/ko/v2/Git-%EB%B8%8C%EB%9E%9C%EC%B9%98-%EB%B8%8C%EB%9E%9C%EC%B9%98%EB%9E%80-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80
