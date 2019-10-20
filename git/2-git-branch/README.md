@@ -89,6 +89,8 @@ git이 관리하는 파일 : HEAD, refs/heads/master, refs/heads/test
 	1. `git checkout master` 마스터 브랜치로 이동
 	2. `git checkout -b hotfix` (hotfix 브랜치를 만들고 HEAD 이동)  
 	3.  파일 수정, 스테이지에 추가한 후 `git commit -m "C4"`
+	
+(https://github.com/sdu6342/git-merge-with-no-conflict 을 clone 해서 사용합시다)
 
 위 3가지의 과정을 진행하면 아래의 그림과 같다.
 ![`master` 브랜치에서 갈라져 나온 hotfix 브랜치](https://git-scm.com/book/en/v2/images/basic-branching-4.png)
@@ -141,6 +143,8 @@ git은 머지할 때 자식 커밋들의 변경 내역에서 무엇이 더 중�
 머지 중에 충돌이 날 경우 git stauts를 입력하면 both modified 파일을 확인 할 수 있다.
 충돌이 난 곳을 확인후 내용을 수정한다. (>>>> HEAD와 같은 내용을 지운다.) 모두 스테이징에 추가한 후 머지 커밋(C6)를 만들 수 있다.
 
+https://github.com/sdu6342/git-merge-with-conflict 에서 master와 iss53은 같은 파일내 같은 줄을 수정한 커밋이 있어 충돌이 발생한다.
+
 ### 4. 이쯤와서 정리하는 branch 명령어들
 
 `git branch` git 브랜치 리스트
@@ -182,7 +186,7 @@ experiment와 master를 합치려면 3-way 로 해야만 한다.
 
 `git rebase master`
 
-그러면 아래와 같이 c3 커밋을 c2가 아닌 c3로 부터 시작한것으로 커밋을 변경하게 된다.
+그러면 아래와 같이 c4 커밋을 c2가 아닌 c3로 부터 시작한것으로 커밋을 변경하게 된다.
 
 ![`C4`의 변경사항을 `C3`에 적용하는 Rebase 과정.](https://git-scm.com/book/en/v2/images/basic-rebase-3.png)
 
@@ -195,6 +199,17 @@ experiment와 master를 합치려면 3-way 로 해야만 한다.
 ![master 브랜치를 Fast-forward시키기](https://git-scm.com/book/en/v2/images/basic-rebase-4.png)
 
 머지 커밋이 없는 깔끔한 마스터 브랜치를 만들 수 있다.
+
+### 3. 실습으로 이해하는 리베이스
+https://github.com/sdu6342/git-merge-with-conflict 을 다시 클론받자.
+
+`git checkout iss53`
+
+`git rebase iss53` conflict가 존재하므로 해결한 후 스테이지에 추가한 후 `git rebase --continuie`를 입력하자.
+
+`git checkout master`
+
+`git merge iss53` 머지 커밋없는 깔끔한 이력을 만들 수 있다.
 
 ### 3. 리베이스를 활용!
 ![다른 토픽 브랜치에서 갈라져 나온 토픽 브랜치](https://git-scm.com/book/en/v2/images/interesting-rebase-1.png)
@@ -230,6 +245,16 @@ push를 했다면 rebase하지 말라.
 이때 우리의 로컬에서 git log를 입력하면 c4와 c4'가 공존하는 혼란한 로그를 확인하게 된다.
 
 위의 문제는 git pull --rebase을 이용해 pull을 받으면 해결할 수있다. 그렇지만 pull 할때마다 rebase를 해야하는 부담이 있으니 위와 같은 상황을 사전에 만들지 않도록 하는 것이 좋다. 각자 로컬에서 리베이스를 해서 푸시하는 것이 제일 좋다. 또한 같이 사용하지 않고, 아직 같이 사용하는 브랜치에 머지하지 않았더라면 리베이스를 해서 push -f를 하더라도 위와 같은 문제는 없다.
+
+
+## 5. 과제
+1. 리베이스 익숙해지기 : git-merge-with-conflict를 다시 클론 받고, iss53에서 충돌이 존재하는 커밋 두개를 더 만든 후 리베이스를 테스트 해보자. 리베이스 과정 중 각 커밋의 충돌 상태의 git status를 스크린샷으로 남기기 (총 2장의 스크린샷)
+
+2. 위의 예제 중 하나인 master, server, client 문제를 직접 커밋을 만들고 --onto 옵션을 사용해서 리베이스를 진행해보자. 리베이스전의 그래프와 리베이스 후의 그래프를 스크린샷으로 남기기
+
+3. merge의 두가지 방법은 무엇이 있고, 차이점은 무엇인지 요약하기
+
+4. git에서 두 브랜치를 합치는 방법은 무엇이 있고, 차이점은 무엇인지 요약하기
 
 ### References
 1) https://git-scm.com/book/ko/v2/Git-%EB%B8%8C%EB%9E%9C%EC%B9%98-%EB%B8%8C%EB%9E%9C%EC%B9%98%EB%9E%80-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80
